@@ -12,8 +12,7 @@ var assert = chai.assert;
 var server = require('../server');
 var {ObjectID} = require("mongodb");
 
-var _id;
-var bookId = ObjectID(_id);
+var issueId;
 
 chai.use(chaiHttp);
 
@@ -33,12 +32,15 @@ suite('Functional Tests', function() {
         })
         .end(function(err, res){
           assert.equal(res.status, 200);
+          assert.property(res.body, "_id");
           assert.equal(res.body.issue_title, "Title");
           assert.equal(res.body.issue_text, "text");
           assert.equal(res.body.created_by, "Functional Test - Every field filled in");
           assert.equal(res.body.assigned_to, "Chai and Mocha");
           assert.equal(res.body.status_text, "In QA");
           assert.isTrue(res.body.open);
+
+          issueId = ObjectID(res.body._id);
           done();
         });
       });
@@ -81,7 +83,7 @@ suite('Functional Tests', function() {
       
       test('No body', function(done) {
         chai.request(server).put("/api/issues/test")
-          .send({_id: bookId})
+          .send({_id: issueId})
           .end((err, res) => {
             assert.equal(res.status, 200);
             assert.equal(res.text, "no updated fields sent");
@@ -92,7 +94,7 @@ suite('Functional Tests', function() {
       
       test('One field to update', function(done) {
         chai.request(server).put("/api/issues/test")
-          .send({_id: bookId, issue_text: "huge error"})
+          .send({_id: issueId, issue_text: "huge error"})
           .end((err, res) => {
             assert.equal(res.status, 200);
             assert.equal(res.text, "successfully updated");
@@ -103,7 +105,7 @@ suite('Functional Tests', function() {
       
       test('Multiple fields to update', function(done) {
         chai.request(server).put("/api/issues/test")
-        .send({_id: bookId, issue_title: "Same error", issue_text: "huge error"})
+        .send({_id: issueId, issue_title: "Same error", issue_text: "huge error"})
         .end((err, res) => {
           assert.equal(res.status, 200);
           assert.equal(res.text, "successfully updated");
@@ -196,7 +198,7 @@ suite('Functional Tests', function() {
       
       test('Valid _id', function(done) {
         chai.request(server).delete("/api/issues/test")
-          .send({_id: bookId})
+          .send({_id: issueId})
           .end((err, res) => {
             assert.equal(res.status, 200);
             assert.equal(res.text, "successfully deleted");
